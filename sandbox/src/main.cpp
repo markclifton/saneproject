@@ -1,24 +1,31 @@
 #include <saneengine/entrypoint.hpp>
-#include <saneengine/event.hpp>
+#include <saneengine/layer/layer.hpp>
+#include <saneengine/layer/imguilayer.hpp>
 
-struct TestEvent {
-    int x;
-    int y;
-    float z;
-};
-
-class SandboxApplication : public sane::Application, OBSERVE_EVENT_FIELDS(TestEvent, TestEvent::x) {
+class GameLayer : public sane::Layer {
 public:
-    SandboxApplication() : sane::Application("Sandbox", 1280, 720) {
-        START_EVENT_FIELDS(TestEvent, TestEvent::x);
-    }
+    GameLayer(sane::Application* inApplication) : Layer("Game"), mApplication(inApplication) {}
 
     void onUpdate(float deltaTime) override {
-        EventEmitter<TestEvent>::emit({ 1, 2, deltaTime });
+        // Game logic
+        static bool sOnce = [this] {
+            mApplication->pushLayer(std::make_unique<sane::ImGuiLayer>());
+            return true;
+            }();
+
     }
 
-    void onEvent(const TestEvent& event) override {
-        printf("Received event: %d, %d, %f\n", event.x, event.y, event.z);
+    void onRender() override {
+        // Render game objects
+    }
+
+    sane::Application* mApplication;
+};
+
+class SandboxApplication : public sane::Application {
+public:
+    SandboxApplication() : sane::Application("Sandbox", 1280, 720) {
+        pushLayer(std::make_unique<GameLayer>(this));
     }
 };
 

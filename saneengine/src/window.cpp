@@ -21,6 +21,8 @@ namespace sane {
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
             throw std::runtime_error("Failed to initialize GLAD");
         }
+
+        glfwSwapInterval(1);
     }
 
     Window::~Window() {
@@ -45,4 +47,5 @@ namespace sane {
     GLFWwindow* Window::getNativeWindow() const {
         return mGLFWwindow;
     }
-}
+
+} // namespace sane

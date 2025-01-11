@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "application.hpp"
+#include <saneengine/application.hpp>
 
 extern sane::Application* createApplication();
 
