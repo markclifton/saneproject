@@ -7,6 +7,7 @@
 #include <thread>
 
 #include <atomic>
+#include <future>
 #include <memory>
 
 #include <glad/glad.h>
@@ -22,8 +23,8 @@ namespace sane {
         std::unique_ptr<LayerStack> layerStack;
         std::unique_ptr<ecs::SystemManager> systemManager;
         std::thread renderThread;
-        std::vector<std::unique_ptr<Layer>> pendingLayers;
         std::chrono::steady_clock::time_point lastFrameTime;
+        std::vector<std::unique_ptr<Layer>> pendingLayers;
         bool running{ true };
     };
 
@@ -70,35 +71,58 @@ namespace sane {
     }
 
     void Application::setupRenderThread() {
-        mImpl->renderThread = std::thread([this]() {
+        if (!mImpl->window || !mImpl->window->getNativeWindow()) {
+            throw std::runtime_error("Window not properly initialized");
+        }
+
+        mImpl->window->initializeGlad();
+        glfwMakeContextCurrent(nullptr);
+
+        std::promise<void> contextReady;
+        auto contextFuture = contextReady.get_future();
+
+        mImpl->renderThread = std::thread([this, &contextReady]() {
             glfwMakeContextCurrent(mImpl->window->getNativeWindow());
-            while (mImpl->running) {
-                auto currentTime = std::chrono::steady_clock::now();
-                float deltaTime = std::chrono::duration<float>(
-                    currentTime - mImpl->lastFrameTime).count();
-                mImpl->lastFrameTime = currentTime;
 
-                mImpl->systemManager->update(deltaTime);
-
-                for (const auto& layer : mImpl->layerStack->getLayers()) {
-                    layer->onUpdate(deltaTime);
+            try {
+                if (!mImpl->window->getNativeWindow()) {
+                    throw std::runtime_error("Invalid window handle in render thread");
                 }
 
-                for (const auto& layer : mImpl->layerStack->getLayers()) {
-                    layer->onRender();
-                }
+                contextReady.set_value();
 
-                mImpl->window->swapBuffers();
-                glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                while (mImpl->running) {
+                    auto currentTime = std::chrono::steady_clock::now();
+                    float deltaTime = std::chrono::duration<float>(
+                        currentTime - mImpl->lastFrameTime).count();
+                    mImpl->lastFrameTime = currentTime;
 
-                for (auto& pendingLayer : mImpl->pendingLayers) {
-                    mImpl->layerStack->pushLayer(std::move(pendingLayer));
+                    mImpl->systemManager->update(deltaTime);
+
+                    for (const auto& layer : mImpl->layerStack->getLayers()) {
+                        layer->onUpdate(deltaTime);
+                    }
+
+                    for (const auto& layer : mImpl->layerStack->getLayers()) {
+                        layer->onRender();
+                    }
+
+                    mImpl->window->swapBuffers();
+                    glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
+                    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                    for (auto& pendingLayer : mImpl->pendingLayers) {
+                        mImpl->layerStack->pushLayer(std::move(pendingLayer));
+                    }
+                    mImpl->pendingLayers.clear();
                 }
-                mImpl->pendingLayers.clear();
             }
-            glfwMakeContextCurrent(nullptr);
+            catch (const std::exception&) {
+                contextReady.set_exception(std::current_exception());
+            }
             });
+
+        contextFuture.get();
     }
 
     utils::UUID Application::startSystem(std::unique_ptr<ecs::System> system) {

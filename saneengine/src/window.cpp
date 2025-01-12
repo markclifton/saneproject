@@ -18,10 +18,6 @@ namespace sane {
         }
 
         glfwMakeContextCurrent(mGLFWwindow);
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-            throw std::runtime_error("Failed to initialize GLAD");
-        }
-
         glfwSwapInterval(1);
     }
 
@@ -30,6 +26,12 @@ namespace sane {
             glfwDestroyWindow(mGLFWwindow);
         }
         glfwTerminate();
+    }
+
+    void Window::initializeGlad() {
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+            throw std::runtime_error("Failed to initialize GLAD");
+        }
     }
 
     bool Window::shouldClose() const {

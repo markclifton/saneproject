@@ -79,6 +79,9 @@
         "set": "cpp",
         "unordered_set": "cpp",
         "*.rh": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "coroutine": "cpp",
+        "resumable": "cpp",
+        "future": "cpp"
     }
 }

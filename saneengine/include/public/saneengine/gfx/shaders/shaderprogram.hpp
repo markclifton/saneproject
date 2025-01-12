@@ -1,6 +1,7 @@
 #pragma once
 
 // STL headers
+#include <initializer_list>
 #include <string>
 #include <utility>
 
@@ -10,14 +11,18 @@
 // Public headers
 #include <saneengine/utils/api.hpp>
 #include <saneengine/utils/notcopyable.hpp>
+#include <saneengine/gfx/shaders/shadertype.hpp>
 
 namespace sane::gfx {
-    using ShaderData = std::pair<int, std::string>;
+    using ShaderData = std::pair<ShaderType, std::string>;
 
     class SANEENGINE_API ShaderProgram : utils::NotCopyable {
     public:
-        explicit ShaderProgram(std::initializer_list<ShaderData> inShaderData, const std::string& inName = "");
+        ShaderProgram(std::initializer_list<ShaderData> inShaderData, const std::string& inName = "");
+        ShaderProgram(ShaderProgram&& other) noexcept;
         virtual ~ShaderProgram();
+
+        uint32_t getProgramId() const;
 
         void bind() const;
         void unbind() const;

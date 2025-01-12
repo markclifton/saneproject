@@ -10,6 +10,7 @@ namespace sane {
         Window(const char* title = "Sane Engine", uint32_t width = 800, uint32_t height = 600);
         ~Window();
 
+        void initializeGlad();
         bool shouldClose() const;
         void close();
         void swapBuffers();

@@ -1,12 +1,28 @@
 #pragma once
-#include <vector>
+#include "saneengine/utils/api.hpp"
 #include <cstdint>
+#include <initializer_list>
 
 namespace sane::ecs {
-    struct VertexComponent {
-        uint32_t vao{ 0 };
-        uint32_t vbo{ 0 };
-        std::vector<float> vertices;
+    class SANEENGINE_API VertexComponent {
+    public:
+        VertexComponent();
+        ~VertexComponent();
+        VertexComponent(const VertexComponent& other);
+        VertexComponent& operator=(const VertexComponent& other);
+
+        void setVertexData(const float* data, size_t count);
+        void setVertexData(std::initializer_list<float> data);
+
+        const float* getVertices() const;
+        size_t getVertexCount() const;
+
+        bool isInitialized() const;
+        void setInitialized(bool value);
+
+    private:
+        float* vertices{ nullptr };
+        size_t vertexCount{ 0 };
         bool initialized{ false };
     };
 }

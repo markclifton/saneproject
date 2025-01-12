@@ -4,39 +4,41 @@
 #include <stdexcept>
 #include <vector>
 
-namespace sane::gfx {
-    namespace {
-        uint32_t compileShader(GLenum type, const std::string& source) {
-            uint32_t shader = glCreateShader(type);
-            const char* src = source.c_str();
-            glShaderSource(shader, 1, &src, nullptr);
-            glCompileShader(shader);
+namespace {
+    uint32_t compileShader(GLenum type, const std::string& source) {
+        uint32_t shader = glCreateShader(type);
+        const char* sourcePtr = source.c_str();
+        glShaderSource(shader, 1, &sourcePtr, nullptr);
+        glCompileShader(shader);
 
-            int success;
-            glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-            if (!success) {
-                char infoLog[512];
-                glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
-                throw std::runtime_error("Shader compilation failed: " + std::string(infoLog));
-            }
-            return shader;
+        int success;
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+        if (!success) {
+            char infoLog[512];
+            glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
+            glDeleteShader(shader);
+            throw std::runtime_error("Shader compilation failed: " + std::string(infoLog));
         }
-    }
 
+        return shader;
+    }
+}
+
+namespace sane::gfx {
     class ShaderProgram::Impl {
     public:
-        uint32_t program;
+        uint32_t program{ 0 };
         std::string name;
     };
 
     ShaderProgram::ShaderProgram(std::initializer_list<ShaderData> inShaderData, const std::string& inName)
-        : mImpl(new Impl{ 0, inName })
+        : mImpl(new Impl)
     {
         mImpl->program = glCreateProgram();
         std::vector<uint32_t> shaders;
 
         for (const auto& [type, source] : inShaderData) {
-            uint32_t shader = compileShader(type, source);
+            uint32_t shader = compileShader(static_cast<GLenum>(type), source);
             glAttachShader(mImpl->program, shader);
             shaders.push_back(shader);
         }
@@ -61,6 +63,10 @@ namespace sane::gfx {
             glDeleteProgram(mImpl->program);
             delete mImpl;
         }
+    }
+
+    uint32_t ShaderProgram::getProgramId() const {
+        return mImpl->program;
     }
 
     void ShaderProgram::bind() const {

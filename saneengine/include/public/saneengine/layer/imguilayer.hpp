@@ -5,11 +5,12 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
+#include <string>
 
 namespace sane {
     class SANEENGINE_API ImGuiLayer : public Layer {
     public:
-        ImGuiLayer();
+        ImGuiLayer(const char* name = "ImGui Layer", int32_t priority = -1);
         ~ImGuiLayer() override;
 
         void onAttach() override;
