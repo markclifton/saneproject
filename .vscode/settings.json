@@ -72,6 +72,13 @@
         "xtr1common": "cpp",
         "xutility": "cpp",
         "xtree": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "memory_resource": "cpp",
+        "numeric": "cpp",
+        "regex": "cpp",
+        "set": "cpp",
+        "unordered_set": "cpp",
+        "*.rh": "cpp",
+        "random": "cpp"
     }
 }

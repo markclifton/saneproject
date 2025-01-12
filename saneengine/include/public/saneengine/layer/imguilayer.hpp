@@ -1,6 +1,6 @@
 #pragma once
 
-#include "saneengine/api.hpp"
+#include "saneengine/utils/api.hpp"
 #include "saneengine/layer/layer.hpp"
 #include <vector>
 #include <algorithm>
@@ -15,7 +15,7 @@ namespace sane {
         void onAttach() override;
         void onDetach() override;
         void onUpdate(float deltaTime) override;
-        void onRender() override;
+        void onRender() final override;
 
     private:
         class Impl;

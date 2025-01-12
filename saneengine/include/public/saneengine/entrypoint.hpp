@@ -4,7 +4,7 @@
 
 #include <saneengine/application.hpp>
 
-extern sane::Application* createApplication();
+extern std::unique_ptr<sane::Application> createApplication();
 
 int main(int argc, char** argv) {
     createApplication()->run();

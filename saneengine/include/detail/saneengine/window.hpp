@@ -1,5 +1,5 @@
 #pragma once
-#include "saneengine/api.hpp"
+#include "saneengine/utils/api.hpp"
 #include <cstdint>
 
 struct GLFWwindow;

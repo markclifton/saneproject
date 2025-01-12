@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "saneengine/api.hpp"
+#include "saneengine/utils/api.hpp"
 #include "saneengine/utils/notcopyable.hpp"
 
 namespace sane {

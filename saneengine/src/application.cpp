@@ -1,26 +1,30 @@
 #include "saneengine/application.hpp"
-
+#include "saneengine/ecs/system.hpp"
+#include "saneengine/ecs/systemmanager.hpp"
+#include "saneengine/layer/layerstack.hpp"
+#include "saneengine/window.hpp"
 #include <chrono>
+#include <thread>
+
 #include <atomic>
 #include <memory>
-#include <thread>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "saneengine/window.hpp"
-#include "saneengine/layer/layerstack.hpp"
 #include "saneengine/layer/layer.hpp"
+#include "saneengine/utils/uuid.hpp"
 
 namespace sane {
     class Application::Impl {
     public:
         std::unique_ptr<Window> window;
         std::unique_ptr<LayerStack> layerStack;
-        std::vector<std::unique_ptr<Layer>> pendingLayers;
+        std::unique_ptr<ecs::SystemManager> systemManager;
         std::thread renderThread;
-        std::atomic<bool> running{ true };
+        std::vector<std::unique_ptr<Layer>> pendingLayers;
         std::chrono::steady_clock::time_point lastFrameTime;
+        bool running{ true };
     };
 
     Application::Application(const char* title, uint32_t width, uint32_t height)
@@ -28,15 +32,15 @@ namespace sane {
     {
         mImpl->window = std::make_unique<Window>(title, width, height);
         mImpl->layerStack = std::make_unique<LayerStack>();
-        setupRenderThread();
+        mImpl->systemManager = std::make_unique<ecs::SystemManager>();
         mImpl->lastFrameTime = std::chrono::steady_clock::now();
+
+        mImpl->systemManager->startup();
+        setupRenderThread();
     }
 
     Application::~Application() {
-        mImpl->running = false;
-        if (mImpl->renderThread.joinable()) {
-            mImpl->renderThread.join();
-        }
+        mImpl->systemManager->shutdown();
         delete mImpl;
     }
 
@@ -74,6 +78,8 @@ namespace sane {
                     currentTime - mImpl->lastFrameTime).count();
                 mImpl->lastFrameTime = currentTime;
 
+                mImpl->systemManager->update(deltaTime);
+
                 for (const auto& layer : mImpl->layerStack->getLayers()) {
                     layer->onUpdate(deltaTime);
                 }
@@ -93,5 +99,27 @@ namespace sane {
             }
             glfwMakeContextCurrent(nullptr);
             });
+    }
+
+    utils::UUID Application::startSystem(std::unique_ptr<ecs::System> system) {
+        if (!system) {
+            throw std::runtime_error("Cannot start null system");
+        }
+        utils::UUID systemId = utils::generateUUID();
+        system->setId(systemId);
+        mImpl->systemManager->addSystem(std::move(system));
+        return systemId;
+    }
+
+    void Application::stopSystem(utils::UUID systemId) {
+        mImpl->systemManager->removeSystem(systemId);
+    }
+
+    ecs::System* Application::getSystem(utils::UUID systemId) {
+        return mImpl->systemManager->getSystem(systemId);
+    }
+
+    ecs::SystemManager& Application::getSystemManager() {
+        return *mImpl->systemManager;
     }
 } // namespace sane

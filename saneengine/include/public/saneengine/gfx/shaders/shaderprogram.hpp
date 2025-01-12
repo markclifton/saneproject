@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 
 // Public headers
-#include <saneengine/api.hpp>
+#include <saneengine/utils/api.hpp>
 #include <saneengine/utils/notcopyable.hpp>
 
 namespace sane::gfx {
