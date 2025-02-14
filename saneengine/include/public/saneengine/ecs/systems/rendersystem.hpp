@@ -11,5 +11,8 @@ namespace sane::ecs {
         void onAttach(entt::registry& registry) override;
         void onDetach(entt::registry& registry) override;
         void onUpdate(entt::registry& registry, float deltaTime) override;
+
+    private:
+        uint32_t mVao{ 0 }, mVbo{ 0 };
     };
 }

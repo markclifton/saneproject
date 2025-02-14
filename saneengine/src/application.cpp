@@ -97,15 +97,12 @@ namespace sane {
                         currentTime - mImpl->lastFrameTime).count();
                     mImpl->lastFrameTime = currentTime;
 
-                    mImpl->systemManager->update(deltaTime);
-
                     for (const auto& layer : mImpl->layerStack->getLayers()) {
                         layer->onUpdate(deltaTime);
-                    }
-
-                    for (const auto& layer : mImpl->layerStack->getLayers()) {
                         layer->onRender();
                     }
+
+                    mImpl->systemManager->update(deltaTime);
 
                     mImpl->window->swapBuffers();
                     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);

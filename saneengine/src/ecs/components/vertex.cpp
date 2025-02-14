@@ -30,13 +30,15 @@ namespace sane::ecs {
 
     void VertexComponent::setVertexData(const float* data, size_t count) {
         delete[] vertices;
-        vertices = new float[count];
+        vertices = new float[count * 3];
         vertexCount = count;
-        std::memcpy(vertices, data, count * sizeof(float));
+        std::memcpy(vertices, data, 3 * count * sizeof(float));
+
+        setInitialized(true);
     }
 
-    void VertexComponent::setVertexData(std::initializer_list<float> data) {
-        setVertexData(data.begin(), data.size());
+    void VertexComponent::setVertexData(std::initializer_list<float> data, size_t count) {
+        setVertexData(data.begin(), count);
     }
 
     const float* VertexComponent::getVertices() const { return vertices; }

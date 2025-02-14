@@ -35,6 +35,8 @@ namespace sane::gfx {
         : mImpl(new Impl)
     {
         mImpl->program = glCreateProgram();
+        mImpl->name = inName;
+
         std::vector<uint32_t> shaders;
 
         for (const auto& [type, source] : inShaderData) {
